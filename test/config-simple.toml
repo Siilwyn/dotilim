@@ -1,0 +1,5 @@
+version = 1
+
+sources = ["./sources-fixture/*.jpg"]
+duration = 60
+order = "random"
