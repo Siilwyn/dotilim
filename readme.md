@@ -61,18 +61,18 @@ duration: Integer
 order: Enum { random, alphabetical }
 ```
 
-#### Field parsing
-### `sources`
-Input: Array containing (glob) file paths.
-Valid output: Each path shell resolved and every glob path expanded filling a new array of paths.
+### Field parsing
+#### `sources`
+Input: Array containing (glob) file paths.  
+Valid output: Each path shell resolved and every glob path expanded filling a new array of paths.  
 Error output: Array of errors, each error matching an incorrect path.
-### `duration`
-Input: Integer of seconds a wallpaper is shown before changing if multiple wallpapers are given.
-Valid output: Integer, same as input.
+#### `duration`
+Input: Integer of seconds a wallpaper is shown before changing if multiple wallpapers are given.  
+Valid output: Integer, same as input.  
 Error output: Parsing error containing the given and expected type.
-### `order`
-Input: Enum of valid orders.
-Valid output: Order Enum, same as input.
+#### `order`
+Input: Enum of valid orders.  
+Valid output: Order Enum, same as input.  
 Error output: Parsing error containing the given and expected type.
 
 ___
