@@ -1,11 +1,9 @@
 #[macro_use]
 extern crate crossbeam;
 use crossbeam::crossbeam_channel;
-use dirs;
 use glob::glob;
 use rand::seq::IteratorRandom;
 use serde::Deserialize;
-use shellexpand;
 
 use std::fs;
 use std::path;
@@ -47,7 +45,7 @@ fn main() {
                     }
                     Order::alphabetical => {
                         change_wallpaper(
-                            &wallpapers.iter().next().unwrap().clone().into_os_string().into_string().unwrap()
+                            &wallpapers.get(0).unwrap().clone().into_os_string().into_string().unwrap()
                         )
                     }
                 }
