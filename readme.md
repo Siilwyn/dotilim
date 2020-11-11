@@ -30,7 +30,7 @@ Either `Alphabetical` or `Random`.
 ## Running as a system service
 To run Dotilim in the background automatically: Place the following content in either `/etc/systemd/user/dotilim.service` or `~/.config/systemd/user/dotilim.service`. Packagers of systemd-based distributions are encouraged to include the file in the former location.
 
-```toml
+```
 [Unit]
 Description=dotilim
 Documentation=https://github.com/Siilwyn/dotilim
