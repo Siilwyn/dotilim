@@ -85,7 +85,7 @@ fn expand_sources(sources: Vec<String>) -> Vec<path::PathBuf> {
     paths
 }
 
-fn pick_random(paths: &Vec<path::PathBuf>) -> path::PathBuf {
+fn pick_random(paths: &[path::PathBuf]) -> path::PathBuf {
     let mut rng = rand::thread_rng();
 
     let random_item = paths.iter().choose(&mut rng).unwrap();
