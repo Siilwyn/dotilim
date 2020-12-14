@@ -10,3 +10,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
+      - run: cargo fmt -- --check
