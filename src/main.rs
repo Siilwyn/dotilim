@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate crossbeam;
-use crossbeam::crossbeam_channel;
 use glob::glob;
 use rand::seq::IteratorRandom;
 use serde::Deserialize;
@@ -32,7 +31,7 @@ fn main() {
 
     let wallpapers = expand_sources(config.sources);
 
-    let ticker = crossbeam_channel::tick(Duration::from_secs(config.duration));
+    let ticker = crossbeam::channel::tick(Duration::from_secs(config.duration));
 
     loop {
         select! {
