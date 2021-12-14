@@ -59,7 +59,7 @@ fn change_wallpaper(background_uri: &str) {
             "set",
             "org.gnome.desktop.background",
             "picture-uri",
-            &background_uri,
+            background_uri,
         ])
         .status()
         .expect("Failed to change wallpaper using Gnome.");
