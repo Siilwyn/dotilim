@@ -13,7 +13,8 @@ Located in `$XDG_CONFIG_HOME/dotilim.toml` or `~/.config/dotilim.toml`, an examp
 ```toml
 version = 1
 sources = ["~/Pictures/Wallpapers/**/*.jpg"]
-duration = 60
+duration = [60, 09:00, 15:00]
+times = [09:00, 15:00]
 order = "random"
 ```
 
