@@ -20,7 +20,7 @@ enum Order {
 struct Config {
     version: u64,
     sources: Vec<String>,
-    duration: u64,
+    duration: Vec<u64>,
     order: Order,
 }
 
@@ -44,6 +44,7 @@ fn main() {
                     }
                     Order::alphabetical => {
                         change_wallpaper(
+                            // todo
                             &wallpapers.get(0).unwrap().clone().into_os_string().into_string().unwrap()
                         )
                     }
