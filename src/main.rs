@@ -18,6 +18,7 @@ enum Order {
 
 #[derive(Deserialize, Debug)]
 struct Config {
+    #[allow(unused)]
     version: u64,
     sources: Vec<String>,
     duration: u64,
@@ -59,6 +60,16 @@ fn change_wallpaper(background_uri: &str) {
             "set",
             "org.gnome.desktop.background",
             "picture-uri",
+            background_uri,
+        ])
+        .status()
+        .expect("Failed to change wallpaper using Gnome.");
+
+    Command::new("gsettings")
+        .args(&[
+            "set",
+            "org.gnome.desktop.background",
+            "picture-uri-dark",
             background_uri,
         ])
         .status()
