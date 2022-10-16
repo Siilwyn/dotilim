@@ -20,7 +20,9 @@ enum Order {
 struct Config {
     #[allow(unused)]
     version: u64,
-    sources: Vec<String>,
+    sources: Option<Vec<String>>,
+    sources_light: Option<Vec<String>>,
+    sources_dark: Option<Vec<String>>,
     duration: u64,
     order: Order,
 }
@@ -30,13 +32,21 @@ fn main() {
         .map(|config_dir| read_config(config_dir.join("dotilim.toml")))
         .unwrap();
 
-    let wallpapers = expand_sources(config.sources);
+    let wallpapers_default = expand_sources(config.sources);
+    let wallpapers_light = expand_sources(config.sources_light);
+    let wallpapers_dark = expand_sources(config.sources_dark);
 
     let ticker = crossbeam::channel::tick(Duration::from_secs(config.duration));
 
     loop {
         select! {
             recv(ticker) -> _ => {
+                let color_scheme = get_color_scheme().unwrap();
+                let wallpapers = match color_scheme {
+                    ColorScheme::NoPreference | ColorScheme::PreferLight => [wallpapers_default.as_slice(), wallpapers_light.as_slice()].concat(),
+                    ColorScheme::PreferDark => [wallpapers_default.as_slice(), wallpapers_dark.as_slice()].concat(),
+                };
+
                 match config.order {
                     Order::random => {
                         change_wallpaper(
@@ -84,21 +94,62 @@ fn read_config(path: path::PathBuf) -> Config {
     toml::from_str(&toml_str).unwrap()
 }
 
-fn expand_sources(sources: Vec<String>) -> Vec<path::PathBuf> {
+fn expand_sources(sources: Option<Vec<String>>) -> Vec<path::PathBuf> {
     let paths: Vec<_> = sources
+        .unwrap_or_default()
         .iter()
         .map(|source| shellexpand::full(source).unwrap())
-        .map(|source| glob(&source).unwrap().filter_map(Result::ok))
-        .flatten()
+        .flat_map(|source| glob(&source).unwrap().filter_map(Result::ok))
         .collect();
 
     paths
 }
 
+/// The system's preferred color scheme
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ColorScheme {
+    NoPreference,
+    PreferDark,
+    PreferLight,
+}
+
+fn get_color_scheme() -> Option<ColorScheme> {
+    let connection = zbus::blocking::Connection::session();
+    if connection.is_err() {
+        return None;
+    }
+
+    let reply = connection.unwrap().call_method(
+        Some("org.freedesktop.portal.Desktop"),
+        "/org/freedesktop/portal/desktop",
+        Some("org.freedesktop.portal.Settings"),
+        "Read",
+        &("org.freedesktop.appearance", "color-scheme"),
+    );
+
+    if let Ok(reply) = &reply {
+        let theme = reply.body::<zvariant::Value>();
+        if theme.is_err() {
+            return None;
+        }
+        let theme = theme.unwrap().downcast::<u32>();
+        match theme.unwrap() {
+            1 => Some(ColorScheme::PreferDark),
+            2 => Some(ColorScheme::PreferLight),
+            _ => Some(ColorScheme::NoPreference),
+        }
+    } else {
+        None
+    }
+}
+
 fn pick_random(paths: &[path::PathBuf]) -> path::PathBuf {
     let mut rng = rand::thread_rng();
 
-    let random_item = paths.iter().choose(&mut rng).unwrap();
+    let random_item = paths
+        .iter()
+        .choose(&mut rng)
+        .expect("sources should not be empty");
 
     random_item.to_path_buf()
 }
@@ -115,7 +166,9 @@ mod tests {
         );
 
         assert_eq!(
-            read_config(path::PathBuf::from("./test/config-simple.toml")).sources,
+            read_config(path::PathBuf::from("./test/config-simple.toml"))
+                .sources
+                .unwrap(),
             [String::from("./sources-fixture/*.jpg")]
         );
     }
@@ -123,7 +176,7 @@ mod tests {
     #[test]
     fn expand_sources_globs() {
         assert_eq!(
-            expand_sources(vec![String::from("./test/sources-fixture/*.jpg")]),
+            expand_sources(Some(vec![String::from("./test/sources-fixture/*.jpg")])),
             [
                 path::PathBuf::from("test/sources-fixture/a.jpg"),
                 path::PathBuf::from("test/sources-fixture/b.jpg")
@@ -134,10 +187,10 @@ mod tests {
     #[test]
     fn expand_sources_multiple_globs() {
         assert_eq!(
-            expand_sources(vec![
+            expand_sources(Some(vec![
                 String::from("./test/sources-fixture/*.jpg"),
                 String::from("./test/sources-fixture/more/*.jpg")
-            ]),
+            ])),
             [
                 path::PathBuf::from("test/sources-fixture/a.jpg"),
                 path::PathBuf::from("test/sources-fixture/b.jpg"),
@@ -148,9 +201,14 @@ mod tests {
     }
 
     #[test]
+    fn expand_sources_empty() {
+        assert!(expand_sources(None).is_empty())
+    }
+
+    #[test]
     fn pick_random_simple() {
         assert_eq!(
-            pick_random(&[path::PathBuf::from("test/sources-fixture/a.jpg")].to_vec()),
+            pick_random([path::PathBuf::from("test/sources-fixture/a.jpg")].as_ref()),
             path::PathBuf::from("test/sources-fixture/a.jpg")
         )
     }
