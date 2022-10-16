@@ -13,6 +13,8 @@ Located in `$XDG_CONFIG_HOME/dotilim.toml` or `~/.config/dotilim.toml`, an examp
 ```toml
 version = 1
 sources = ["~/Pictures/Wallpapers/**/*.jpg"]
+sources_light = []
+sources_dark = []
 duration = 60
 order = "random"
 ```
@@ -22,6 +24,12 @@ order = "random"
 The configuration version, latest at the moment is: `1`.
 #### `sources`
 A list of paths to your wallpapers, an item can also use unix shell style globs.
+#### `sources_light`
+##### Optional
+Same as `sources` but only used when desktop color scheme has no or light preference.
+#### `sources_dark`
+##### Optional
+Same as `sources` but only used when desktop color scheme has dark preference.
 #### `duration`
 Number of seconds a wallpaper is shown before changing if multiple wallpapers are given.
 #### `order`
@@ -57,12 +65,14 @@ systemctl --user enable dotilim.service
 ```
 version: Integer
 sources: Array<String>
+sources_light?: Array<String>
+sources_dark?: Array<String>
 duration: Integer
 order: Enum { random, alphabetical }
 ```
 
 ### Field parsing
-#### `sources`
+#### `sources`, `sources_light`, `sources_dark`
 Input: Array containing (glob) file paths.  
 Valid output: Each path shell resolved and every glob path expanded filling a new array of paths.  
 Error output: Array of errors, each error matching an incorrect path.
